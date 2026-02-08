@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>💈 JR Barbería</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: #fff; min-height: 100vh; padding: 15px; padding-bottom: 80px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 25px; background: linear-gradient(135deg, #2a2a2a, #1a1a1a); padding: 20px; border-radius: 20px; border: 3px solid #888; }
+        h1 { font-family: 'Bebas Neue', cursive; font-size: 2.5rem; color: #C0C0C0; letter-spacing: 3px; }
+        .tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { background: #333; border: 2px solid #444; padding: 10px 16px; border-radius: 25px; color: #fff; font-weight: 600; cursor: pointer; font-size: 0.8rem; }
+        .tab.active { background: linear-gradient(135deg, #888, #666); border-color: #888; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        
+        /* Calendar */
+        .calendar-section { background: #2a2a2a; border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-header h2 { font-size: 1.5rem; color: #C0C0C0; }
+        .calendar-nav button { background: #888; border: none; color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .calendar-day-header { text-align: center; font-weight: 600; padding: 10px; color: #888; font-size: 0.85rem; }
+        .calendar-day { background: #1a1a1a; border: 2px solid #3a3a3a; padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
+        .calendar-day:hover { border-color: #888; }
+        .calendar-day.empty { background: transparent; border: none; cursor: default; }
+        .calendar-day.today { border-color: #C0C0C0; background: #2a2a2a; }
+        .calendar-day.selected { background: linear-gradient(135deg, #888, #666); border-color: #888; }
+        .calendar-day.has-data { background: #1a3a1a; border-color: #27AE60; }
+        .calendar-day-number { font-weight: 600; font-size: 1.1rem; }
+        .calendar-day-indicator { font-size: 0.7rem; color: #27AE60; margin-top: 3px; }
+        
+        .selected-date-display { background: #2a2a2a; border: 2px solid #888; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; }
+        .selected-date-display h3 { color: #C0C0C0; font-size: 1.3rem; }
+        
+        .section { background: #2a2a2a; border-radius: 18px; padding: 20px; margin-bottom: 20px; }
+        .section-title { font-size: 1.6rem; color: #C0C0C0; margin-bottom: 18px; font-weight: 700; }
+        .barberos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+        .barbero-card { background: linear-gradient(135deg, #333, #444); border-radius: 14px; padding: 18px; border: 2px solid #555; }
+        .barbero-name { font-family: 'Bebas Neue', cursive; font-size: 1.7rem; color: #C0C0C0; margin-bottom: 12px; text-align: center; }
+        .service-buttons { display: grid; gap: 8px; }
+        .service-btn { background: #1a1a1a; border: 2px solid #666; padding: 14px; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        .service-btn:active { background: #888; border-color: #888; transform: scale(0.95); }
+        
+        .payment-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .payment-modal.show { display: flex; }
+        .payment-content { background: #2a2a2a; border-radius: 20px; padding: 30px; max-width: 400px; width: 90%; border: 3px solid #888; }
+        .payment-title { font-size: 1.5rem; color: #C0C0C0; margin-bottom: 20px; text-align: center; }
+        .payment-buttons { display: grid; gap: 15px; }
+        .payment-btn { padding: 20px; border-radius: 15px; border: 3px solid; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .payment-btn.efectivo { background: #27AE60; border-color: #229954; color: white; }
+        .payment-btn.mercadopago { background: #009EE3; border-color: #0080C0; color: white; }
+        .payment-btn:active { transform: scale(0.95); }
+        .cancel-btn { background: #E74C3C; border: none; color: white; padding: 12px; border-radius: 10px; margin-top: 15px; font-weight: 600; cursor: pointer; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: linear-gradient(135deg, #2a2a2a, #3a3a3a); border-radius: 15px; padding: 20px; text-align: center; border: 2px solid #888; }
+        .stat-label { font-size: 0.85rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-value { font-size: 2.2rem; font-weight: 800; color: #C0C0C0; }
+        
+        .barbero-section { background: #2a2a2a; border-radius: 18px; padding: 22px; margin-bottom: 18px; border-left: 5px solid #888; }
+        .barbero-title-big { font-family: 'Bebas Neue', cursive; font-size: 2.3rem; color: #C0C0C0; margin-bottom: 18px; }
+        .servicios-detalle { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 11px; margin-bottom: 18px; }
+        .servicio-card { background: #1a1a1a; padding: 16px; border-radius: 12px; text-align: center; border: 2px solid #333; }
+        .servicio-nombre { font-size: 0.8rem; color: #aaa; margin-bottom: 8px; }
+        .servicio-cantidad { font-family: 'Bebas Neue', cursive; font-size: 2.3rem; color: #fff; margin-bottom: 4px; }
+        .servicio-subtotal { font-size: 0.95rem; color: #888; font-weight: 600; }
+        
+        .totales-barbero { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; background: linear-gradient(135deg, #888, #666); padding: 18px; border-radius: 14px; margin-bottom: 14px; }
+        .total-item { text-align: center; }
+        .total-item-label { font-size: 0.85rem; margin-bottom: 6px; }
+        .total-item-value { font-family: 'Bebas Neue', cursive; font-size: 2rem; color: #fff; }
+        
+        .distribucion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+        .dist-card { padding: 16px; border-radius: 12px; border: 2px solid; }
+        .dist-card.barbero { background: rgba(39, 174, 96, 0.2); border-color: #27AE60; }
+        .dist-card.barberia { background: rgba(241, 196, 15, 0.2); border-color: #F1C40F; }
+        .dist-label { font-size: 0.82rem; margin-bottom: 8px; font-weight: 600; }
+        .dist-card.barbero .dist-label { color: #27AE60; }
+        .dist-card.barberia .dist-label { color: #F39C12; }
+        .dist-value { font-family: 'Bebas Neue', cursive; font-size: 1.9rem; }
+        .dist-card.barbero .dist-value { color: #27AE60; }
+        .dist-card.barberia .dist-value { color: #F39C12; }
+        
+        .notification { position: fixed; top: 20px; left: 20px; right: 20px; max-width: 400px; margin: 0 auto; background: #27AE60; color: white; padding: 15px; border-radius: 12px; z-index: 10000; text-align: center; font-weight: 600; }
+        
+        @media (max-width: 768px) {
+            .barberos-grid, .stats-grid { grid-template-columns: 1fr; }
+            .calendar-day { padding: 8px; min-height: 45px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💈 JR BARBERÍA</h1>
+            <p style="color:#888;">Sistema de Control</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('calendario')">📅 Calendario</button>
+            <button class="tab" onclick="switchTab('registro')">✂️ Registrar</button>
+            <button class="tab" onclick="switchTab('diario')">📊 Resumen</button>
+        </div>
+
+        <!-- CALENDARIO -->
+        <div id="calendario" class="panel active">
+            <div class="calendar-section">
+                <div class="calendar-header">
+                    <h2 id="calendarMonth"></h2>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="prevMonth()">◀</button>
+                        <button onclick="today()">Hoy</button>
+                        <button onclick="nextMonth()">▶</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+            
+            <div id="selectedDateInfo" style="display:none;">
+                <div class="selected-date-display">
+                    <h3 id="selectedDateText"></h3>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Cortes</div>
+                        <div class="stat-value" id="dayCortes">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Ventas</div>
+                        <div class="stat-value" id="dayVentas">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Efectivo</div>
+                        <div class="stat-value" id="dayEfectivo">$0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">MercadoPago</div>
+                        <div class="stat-value" id="dayMercadoPago">$0</div>
+                    </div>
+                </div>
+                
+                <div id="dayDetails"></div>
+            </div>
+        </div>
+
+        <!-- REGISTRO -->
+        <div id="registro" class="panel">
+            <div class="section">
+                <div class="section-title">REGISTRAR CORTE</div>
+                <div class="barberos-grid" id="registroGrid"></div>
+            </div>
+        </div>
+
+        <!-- RESUMEN -->
+        <div id="diario" class="panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Cortes Hoy</div>
+                    <div class="stat-value" id="totalCortesHoy">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Ventas Hoy</div>
+                    <div class="stat-value" id="totalVentasHoy">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Efectivo</div>
+                    <div class="stat-value" id="totalEfectivoHoy">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">MercadoPago</div>
+                    <div class="stat-value" id="totalMercadoPagoHoy">$0</div>
+                </div>
+            </div>
+            
+            <div id="resumenBarberos"></div>
+        </div>
+    </div>
+
+    <!-- MODAL MÉTODO DE PAGO -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-content">
+            <div class="payment-title">💳 Método de Pago</div>
+            <div class="payment-buttons">
+                <button class="payment-btn efectivo" onclick="confirmarCorte('Efectivo')">
+                    💵 EFECTIVO
+                </button>
+                <button class="payment-btn mercadopago" onclick="confirmarCorte('MercadoPago')">
+                    💳 MERCADOPAGO
+                </button>
+            </div>
+            <button class="cancel-btn" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
